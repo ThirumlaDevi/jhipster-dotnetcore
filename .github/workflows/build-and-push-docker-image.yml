@@ -1,6 +1,6 @@
 name: manually-triggering-docker-image-build-and-push
 
-on: workflow_dispatch
+on: push
 
 jobs:
   build_docker_image:
