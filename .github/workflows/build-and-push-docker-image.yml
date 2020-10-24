@@ -1,0 +1,43 @@
+name: manually-triggering-docker-image-build-and-push
+
+on: workflow_dispatch
+
+jobs:
+  build_docker_image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - 
+      name: Get project version
+      run: VERSION=$(cat package.json | grep '"version":' | awk '{print $2}' | tr -d '",')
+    - 
+      name: Navigate to docker directory
+      run: cd docker
+    -
+      name: Login to DockerHub
+      run: |
+        echo "dockerhub username: ${{ secrets.DOCKERHUB_USERNAME }}"
+        echo "dockerhub token: ${{ secrets.DOCKERHUB_TOKEN }}"
+        echo "dockerhub repository: ${{ secrets.DOCKERHUB_REPOSITORY }}"
+        echo "docker image tag: ${VERSION}"
+        docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+    - 
+      name: Build docker image
+      run: docker build -t jhipster-generator-dotnetcore:${VERSION} jhipster-generator-dotnetcore:latest .
+    -
+      name: Tag local image created to jhipster generator repository
+      run: |
+      docker tag jhipster-generator-dotnetcore:${VERSION} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
+      docker tag jhipster-generator-dotnetcore:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+    -
+      name: Push docker image
+      run: |
+      docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
+      docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+    -
+      name: Logout of DockerHub
+      run: docker logout
+
+
+
+  # if: github.event.pull_request.merged
