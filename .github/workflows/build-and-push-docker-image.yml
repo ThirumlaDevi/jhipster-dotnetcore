@@ -1,4 +1,4 @@
-name: manually-triggering-docker-image-build-and-push
+name: docker image push triggered on push event
 
 on: push
 
@@ -7,33 +7,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - 
-      name: Checkout to main branch and get project version
+      name: Checkout to main branch
       uses: actions/checkout@main
-      env:
-        VERSION: $(cat package.json | grep '"version":' | awk '{print $2}' | tr -d '",')
+    -
+      name: Get project version
+      id: jhipster_generator
+      run: echo "::set-output name=version::$(cat package.json | grep '"version":' | awk '{print $2}' | tr -d '",')"
     - 
       name: Navigate to docker directory
-      run: |
-        cd docker
-        echo "docker image tag: ${VERSION}"
+      run: cd docker
     -
       name: Login to DockerHub
-      run: |
-        echo "docker image tag: ${VERSION}"
-        docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
     - 
       name: Build docker image
-      run: docker build -t jhipster-generator-dotnetcore:${VERSION} -t jhipster-generator-dotnetcore:latest .
-    -
-      name: Tag local image created to jhipster generator repository
       run: |
-        docker tag jhipster-generator-dotnetcore:${VERSION} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
-        docker tag jhipster-generator-dotnetcore:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+        docker build -t jhipster-generator-dotnetcore:${{ steps.jhipster_generator.outputs.version }} -t jhipster-generator-dotnetcore:latest .
     -
-      name: Push docker image
+      name: Tag local image to jhipster generator registry and push it to docker hub
       run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+        VERSION=${{ steps.jhipster_generator.outputs.version }}
+        USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+        REPOSITORY=${{ secrets.DOCKERHUB_REPOSITORY }}
+        docker tag jhipster-generator-dotnetcore:$VERSION $USERNAME/$REPOSITORY:$VERSION
+        docker tag jhipster-generator-dotnetcore:latest $USERNAME/$REPOSITORY:latest
+        docker push $USERNAME/$REPOSITORY:$VERSION
+        docker push $USERNAME/$REPOSITORY:latest
     -
       name: Logout of DockerHub
       run: docker logout
