@@ -27,13 +27,13 @@ jobs:
     -
       name: Tag local image created to jhipster generator repository
       run: |
-      docker tag jhipster-generator-dotnetcore:${VERSION} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
-      docker tag jhipster-generator-dotnetcore:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+        docker tag jhipster-generator-dotnetcore:${VERSION} ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
+        docker tag jhipster-generator-dotnetcore:latest ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
     -
       name: Push docker image
       run: |
-      docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
-      docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:${VERSION}
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPOSITORY }}:latest
     -
       name: Logout of DockerHub
       run: docker logout
